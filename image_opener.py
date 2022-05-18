@@ -30,7 +30,7 @@ def reg3simpla(x,y):
   
  
 
-Informatii={'image_name':[],'label':[],'n_total_slices':[],'img_size':[],'aria':[],'conturul':[]}
+Informatii={'image_name':[],'label':[],'n_total_slices':[],'img_size':[]}
 jsons = glob.glob(r"D:\ai intro\OCT\Adnotari\*")
 images=glob.glob(r"E:\AchizitiiOctombrieUMF2021OCT\*")
 print (jsons, images)
@@ -47,7 +47,8 @@ for j,i in zip(jsons,images):
       #print(len(data['plaques']))
       #print(img2d_shape)
     
-      
+      Informatii['image_name'].append(os.path.basename(j))
+      Informatii['img_size'].append(img2d_shape)
       nr=0
       for p in range(len(data['plaques'])):
        if (data['plaques'][p]['morphology']=='Calcium nodule'):
@@ -67,20 +68,19 @@ for j,i in zip(jsons,images):
            #print(puncte.shape)
            #print (puncte)
            sl = int(s)
-           Informatii['image_name'].append(os.path.basename(j))
-           Informatii['img_size'].append(img2d_shape)
-           if data['plaques'][p]["contours"][s]["closed"]==True:
-              Informatii['aria'].append(cv.contourArea(pts))
-              Informatii['conturul'].append('Closed')
-           else: 
-              Informatii['aria'].append(cv.contourArea(pts))
-              Informatii['conturul'].append('Open')
+      
+         #   if data['plaques'][p]["contours"][s]["closed"]==True:
+         #      Informatii['aria'].append(cv.contourArea(pts))
+         #      Informatii['conturul'].append('Closed')
+         #   else: 
+         #      Informatii['aria'].append(cv.contourArea(pts))
+         #      Informatii['conturul'].append('Open')
 
-           if nr != 0 :  
-              Informatii['label'].append("Calcium Nodule")
-           else:  
-              Informatii['label'].append("NONE")
-           Informatii['n_total_slices'].append(nr)
+      if nr != 0 :  
+       Informatii['label'].append("Calcium Nodule")
+      else:  
+       Informatii['label'].append("NONE")
+      Informatii['n_total_slices'].append(nr)
            ##cv.polylines(img2d[sl,:,:,:],[pts],data['plaques'][p]["contours"][s]["closed"],(0,255,255))
            #cv.imshow(f"Slice {sl}", img2d[sl,:,:,2::-1])  
            #cv.waitKey(0)
@@ -89,32 +89,32 @@ for j,i in zip(jsons,images):
       
 
 # print(Informatii)
-x=['268','269','271','538','539']
-height=[0,0,0,0,0]
-print (Informatii['img_size'][3])
-for info in range(len(Informatii['img_size'])):
-  if Informatii['n_total_slices'][info] != 0:
-   if Informatii['img_size'][info][0]==268:
-      height[0]=height[0]+1
-      print (height)
-   elif Informatii['img_size'][info][0]==269:
-      height[1]=height[1]+1
-   elif Informatii['img_size'][info][0]==271:
-      height[2]=height[2]+1
-   elif Informatii['img_size'][info][0]==538:
-      height[3]=height[3]+1
-   elif Informatii['img_size'][info][0]==539:
-      height[4]=height[4]+1
+# x=['268','269','271','538','539']
+# height=[0,0,0,0,0]
+# print (Informatii['img_size'][3])
+# for info in range(len(Informatii['img_size'])):
+#   if Informatii['n_total_slices'][info] != 0:
+#    if Informatii['img_size'][info][0]==268:
+#       height[0]=height[0]+1
+#       print (height)
+#    elif Informatii['img_size'][info][0]==269:
+#       height[1]=height[1]+1
+#    elif Informatii['img_size'][info][0]==271:
+#       height[2]=height[2]+1
+#    elif Informatii['img_size'][info][0]==538:
+#       height[3]=height[3]+1
+#    elif Informatii['img_size'][info][0]==539:
+#       height[4]=height[4]+1
 
-print (x,height)
-plt.bar(x,height)
-plt.savefig(r"D:\ai intro\OCT\OCT_file\Barplot") 
+# print (x,height)
+# plt.bar(x,height)
+# plt.savefig(r"D:\ai intro\OCT\OCT_file\Barplot") 
 print(Informatii)
 df= pd.DataFrame(Informatii)
 
 
 print(df.head())
-df.to_csv(r"D:\ai intro\OCT\OCT_file\Statistica.csv", index=False)
+df.to_csv(r"D:\ai intro\OCT\OCT_file\Stats.csv", index=False)
 
 # with open(r"D:\ai intro\OCT\OCT_FIle\Statusuri.csv", mode='w') as oct_file:
 #   oct_writer = csv.writer(oct_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
