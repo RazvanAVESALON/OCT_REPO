@@ -1,6 +1,7 @@
 from email.mime import image
 import os
-import cv2 
+from sqlite3 import Date
+import cv2 as cv
 import data
 import network
 import preprocessing
@@ -19,7 +20,7 @@ import losses
 import focal_tversky_unet as attention_unet
 import glob
 import json
-
+from sklearn.metrics import confusion_matrix
 
 
 def dice_coef(y_true, y_pred):
@@ -37,38 +38,76 @@ def reg3simpla(x,y):
   
   return z
   
-def transfom_into_binary(jsons ):
-    
-    
-    for j in jsons:
-        print (j)
-        with open(j) as f:
-            data = json.load(f)
-        print (data.keys())
-        for k in data.keys():
-            if k=='plaques':
-                for p in range(len(data['plaques'])):
-                    if (data['plaques'][p]['morphology']=='Calcium nodule'):
-                        for s in data['plaques'][p]["contours"]:
-                            points = data['plaques'][p]["contours"][s]["control_pts"]
-                            pts = np.array(points, np.int32)
-                            print(pts.shape)
-                            pts=reg3simpla(pts,pts.shape[0])
-                            img=cv2.imread(r"D:\ai intro\OCT\OCT_REPO\Solid_black.svg.png")
-                            filled = cv2.fillPoly(img, pts = [pts], color =(255,255,255))
-                          
-                            cv2.imwrite(f"D:\\ai intro\\OCT\\OCT_REPO\\Imagini binare\\Adnotare_binara{f}_{s}.png",filled)
-                            cv2.imshow("filled",filled)
-                            cv2.waitKey()
-                            cv2.destroyAllWindows()
+def transfom_into_binary(data,j):
+    for k in data.keys():
+        if k=='plaques':
+            for p in range(len(data['plaques'])):
+                if (data['plaques'][p]['morphology']=='Calcium nodule'):
+                     for s in data['plaques'][p]["contours"]:
+                        points = data['plaques'][p]["contours"][s]["control_pts"]
+                        pts = np.array(points, np.int32)
+                        print(pts.shape)
+                        pts=reg3simpla(pts,pts.shape[0])
+                        print (pts)
+                        
+                   
+                        if data['plaques'][p]["contours"][s]["closed"]==True:
+                            img=np.zeros((1024,1024,3), np.int32)
+                            filled = cv.fillPoly(img, pts = [pts], color =(255,255,255))
+                            print(filled)
+                            path=r"Imagini"
+                            cv.imwrite(os.path.join(path, 'Adnotare_binara'+'_'+str(p)+'_'+str(s)+'.png'),filled)
+                            
+def overlap(gt,pred):
+ 
+ 
+ 
+ print(gt.shape)
+ x=np.ravel(gt)
+ y=np.ravel(pred)
+ tp = np.zeros((x.shape),np.int32)
+ fp = np.zeros((x.shape),np.int32)
+ fn = np.zeros((x.shape),np.int32)
+ for i in range(3145728):
+   if x[i]==1 & y[i]==1:
+     tp[i]==1
+   elif x[i]==1 & y[i]==0:
+     fn[i]==1
+   elif  x[i]==0 & y[i]==1:
+     fp[i]==1
+ 
+ tp=tp.reshape(1024,1024,3)
+ fp=fp.reshape(1024,1024,3)
+ fn=fn.reshape(1024,1024,3) 
+
+
+ img=np.zeros((1024,1024,3), np.int32) 
+ img[:,:,1] = tp[:,:,0]
+ img[:,:,2] = fp[:,:,0]
+ img [:,:,0]= fn[:,:,0]
+ cv.imshow("iamgine",img)
+ cv.waitKey(0)
+ cv.destroyAllWindows() 
+
+ 
+ 
+ 
+                                    
                         
                             
                               
 if __name__=='__main__':   
-   jsons = glob.glob(r"D:\ai intro\OCT\Adnotari\*")
-   images=glob.glob(r"E:\AchizitiiOctombrieUMF2021OCT\*")
-   print(jsons)
-   transfom_into_binary(jsons)
+  # jsons = glob.glob(r"D:\ai intro\OCT\Adnotari\*")
+  # for j in jsons:
+  #     print (j)
+  #     with open(j) as f:
+  #          date = json.load(f)
+  #     print (date.keys())
+  #     transfom_into_binary(date,j)    
+        
+  gt=cv.imread(r"D:\ai intro\OCT\OCT_REPO\Imagini\Adnotare_binara_0_64.png")
+  pred=cv.imread(r"D:\ai intro\OCT\OCT_REPO\Imagini\Adnotare_binara_0_66.png")
+  overlap(gt,pred)
    
    
 
