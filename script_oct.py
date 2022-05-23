@@ -52,42 +52,35 @@ def transfom_into_binary(data,j):
                         
                    
                         if data['plaques'][p]["contours"][s]["closed"]==True:
-                            img=np.zeros((1024,1024,3), np.int32)
+                            img=np.zeros((1024,1024,3), np.uint8)
                             filled = cv.fillPoly(img, pts = [pts], color =(255,255,255))
                             print(filled)
                             path=r"Imagini"
                             cv.imwrite(os.path.join(path, 'Adnotare_binara'+'_'+str(p)+'_'+str(s)+'.png'),filled)
                             
 def overlap(gt,pred):
+ print(gt.shape, gt.dtype)
+ print(gt.min(), gt.max())
+ gt = gt[:, :, 0]
+ pred = pred[:, :, 0]
  
- 
- 
- print(gt.shape)
- x=np.ravel(gt)
- y=np.ravel(pred)
- tp = np.zeros((x.shape),np.int32)
- fp = np.zeros((x.shape),np.int32)
- fn = np.zeros((x.shape),np.int32)
- for i in range(3145728):
-   if x[i]==1 & y[i]==1:
-     tp[i]==1
-   elif x[i]==1 & y[i]==0:
-     fn[i]==1
-   elif  x[i]==0 & y[i]==1:
-     fp[i]==1
- 
- tp=tp.reshape(1024,1024,3)
- fp=fp.reshape(1024,1024,3)
- fn=fn.reshape(1024,1024,3) 
+ tp = gt & pred
+ fp = ~gt & pred
+ fn =  gt & ~pred
+ tn = ~gt & ~pred
 
+ print(tp.min(), tp.max(),fp.min(),fp.max(),fn.min(),fn.max())
 
- img=np.zeros((1024,1024,3), np.int32) 
- img[:,:,1] = tp[:,:,0]
- img[:,:,2] = fp[:,:,0]
- img [:,:,0]= fn[:,:,0]
- cv.imshow("iamgine",img)
- cv.waitKey(0)
- cv.destroyAllWindows() 
+ img=np.zeros((1024,1024,3), np.uint8) 
+ img[:,:,1] = tp
+ img[:,:,2] = fp
+ img [:,:,0]= fn
+ 
+ print(img.min(), img.max())
+ plt.imshow(img)
+ plt.show()
+ 
+#  cv.destroyAllWindows() 
 
  
  
