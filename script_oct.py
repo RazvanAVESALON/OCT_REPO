@@ -93,31 +93,30 @@ def dice_coef(y_true, y_pred):
 def reg3simpla(x,y):
   z=x
   for i in range(y):
-    z[i][0]=(x[i][0]*1024)/512
-    z[i][1]=(x[i][1]*1024)/512
+    z[i][0]=(x[i][0]*1024)/704
+    z[i][1]=(x[i][1]*1024)/704
   
   return z
   
-def transfom_into_binary(data,j):
+def transfom_into_binary(data,j,path_to_save): 
     for k in data.keys():
         if k=='plaques':
             for p in range(len(data['plaques'])):
                 if (data['plaques'][p]['morphology']=='Calcium nodule'):
-                     for s in data['plaques'][p]["contours"]:
+                    for s in data['plaques'][p]["contours"]:
                         points = data['plaques'][p]["contours"][s]["control_pts"]
                         pts = np.array(points, np.int32)
                         print(pts.shape)
                         pts=reg3simpla(pts,pts.shape[0])
                         print (pts)
                         
-                   
+                
                         if data['plaques'][p]["contours"][s]["closed"]==True:
                             img=np.zeros((1024,1024,3), np.uint8)
                             filled = cv.fillPoly(img, pts = [pts], color =(255,255,255))
                             print(filled)
-                            path=r"Imagini"
-                            cv.imwrite(os.path.join(path, 'Adnotare_binara'+'_'+str(p)+'_'+str(s)+'.png'),filled)
-                            
+                            cv.imwrite(os.path.join(path_to_save, 'Adnotare_binara'+'_'+str(p)+'_'+str(s)+'.png'),filled)
+                                
 def overlap(gt,pred):
  print(gt.shape, gt.dtype)
  print(gt.min(), gt.max())
@@ -209,6 +208,11 @@ def test_on_dicom():
                 prediction = prediction[-1]
                 prediction = prediction.reshape((512, 512))
                 prediction= cv.resize(prediction,(1024,1024))
+                print(prediction.max(),prediction.min())
+                prediction[prediction > 0.5] = 1.0
+                prediction[prediction <= 0.5] = 0.0
+                print(prediction.max(),prediction.min())
+                
                 #prediction = reg3simpla(prediction,prediction.shape[1])
                        
                 # plt.subplot(1,2,1)
@@ -216,9 +220,12 @@ def test_on_dicom():
                 
                 # cv.imshow(prediction)
                 # cv.imwrite(f"D:\\ai intro\\OCT\\OCT_REPO\\models\\PREDICTII_IMG{csv_adnotari['image_index'][index]}"+"\\"+"Suprapunere"+str(slice)+".png")
-
-                path=f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_IMG{index+1}"
-                cv.imwrite(os.path.join(path, 'PREDICTIE'+'_'+str(slice)+'.png'),prediction)
+                
+                
+                plt.imshow(prediction,cmap='gray')
+                plt.savefig(f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_IMG{index+1}"+"\\"+"Predictie"+str(slice)+".png")
+                #path=f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_IMG{index+1}"
+                #cv.imwrite(os.path.join(path, 'PREDICTIE'+'_'+str(slice)+'.png'),prediction)
                 #plt.show() 
 
 
@@ -248,13 +255,15 @@ def test_on_dicom():
                             
                               
 if __name__=='__main__':   
-  # jsons = glob.glob(r"D:\ai intro\OCT\Adnotari\*")
-  # for j in jsons:
-  #     print (j)
-  #     with open(j) as f:
-  #          date = json.load(f)
-  #     print (date.keys())
-  #     transfom_into_binary(date,j)    
+#   jsons = glob.glob(r"D:\ai intro\OCT\Adnotari\*")
+#   for j in jsons:
+#       print (j)
+#       with open(j) as f:
+#            date = json.load(f)
+#       print (date.keys())
+#       os.mkdir(f"D:\\ai intro\\OCT\\OCT_REPO\\Imagini\\ADNOTARI_BINARE_{os.path.basename(j)}")
+#       path_to_save=f"D:\\ai intro\\OCT\\OCT_REPO\\Imagini\\ADNOTARI_BINARE_{os.path.basename(j)}"
+#       transfom_into_binary(date,j,path_to_save)    
         
 #   gt=cv.imread(r"D:\ai intro\OCT\OCT_REPO\Imagini\Adnotare_binara_0_64.png")
 #   pred=cv.imread(r"D:\ai intro\OCT\OCT_REPO\Imagini\Adnotare_binara_0_66.png")
