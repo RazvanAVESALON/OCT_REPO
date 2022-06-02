@@ -30,25 +30,28 @@ def reg3simpla(x,y):
   
  
 
-Informatii={'image_name':[],'label':[],'n_total_slices':[],'img_size':[]}
+Informatii={'image_path':[], 'image_index':[] ,'annotation_path':[],'label':[],'slice_idx':[],'n_total_slices':[],'img_size':[],'aria':[],'contur':[]}
 jsons = glob.glob(r"D:\ai intro\OCT\Adnotari\*")
-images=glob.glob(r"E:\AchizitiiOctombrieUMF2021OCT\*")
+images=glob.glob(r"E:\AchizitiiOctombrieUMF2021OCT_2\*")
+idx=0 
 print (jsons, images)
 for j,i in zip(jsons,images):
   with open(j) as f:
     data = json.load(f)
     print(data.keys())
-
+  
+  print("i:",i)
+  idx=idx+1
+  print ("idx:",idx)
   for k in data.keys():
    if k=='plaques':
       ds=dcmread(i)
-      #img2d=ds.pixel_array
+      # img2d=ds.pixel_array
       img2d_shape = ds.pixel_array.shape
-      #print(len(data['plaques']))
-      #print(img2d_shape)
+      print(len(data['plaques']))
+      print(img2d_shape)
     
-      Informatii['image_name'].append(os.path.basename(j))
-      Informatii['img_size'].append(img2d_shape)
+      
       nr=0
       for p in range(len(data['plaques'])):
        if (data['plaques'][p]['morphology']=='Calcium nodule'):
@@ -56,6 +59,10 @@ for j,i in zip(jsons,images):
          nr=nr+n_slices
          print("# slices", n_slices)
          for s in data['plaques'][p]["contours"]:
+           Informatii['image_path'].append(os.path.normpath(i))
+           Informatii['image_index'].append(idx)
+           Informatii['annotation_path'].append(os.path.normpath(j))
+           Informatii['img_size'].append(img2d_shape)
            print("slice", s)
            points = data['plaques'][p]["contours"][s]["control_pts"]
            print("points", points)
@@ -68,27 +75,29 @@ for j,i in zip(jsons,images):
            #print(puncte.shape)
            #print (puncte)
            sl = int(s)
+           if nr != 0 :  
+             Informatii['label'].append("Calcium Nodule")
+           else:  
+             Informatii['label'].append("NONE")
+           Informatii['n_total_slices'].append(nr)
+           Informatii['slice_idx'].append(s) 
+           
       
-         #   if data['plaques'][p]["contours"][s]["closed"]==True:
-         #      Informatii['aria'].append(cv.contourArea(pts))
-         #      Informatii['conturul'].append('Closed')
-         #   else: 
-         #      Informatii['aria'].append(cv.contourArea(pts))
-         #      Informatii['conturul'].append('Open')
-
-      if nr != 0 :  
-       Informatii['label'].append("Calcium Nodule")
-      else:  
-       Informatii['label'].append("NONE")
-      Informatii['n_total_slices'].append(nr)
-           ##cv.polylines(img2d[sl,:,:,:],[pts],data['plaques'][p]["contours"][s]["closed"],(0,255,255))
-           #cv.imshow(f"Slice {sl}", img2d[sl,:,:,2::-1])  
-           #cv.waitKey(0)
+           if data['plaques'][p]["contours"][s]["closed"]==True:
+              Informatii['aria'].append(cv.contourArea(pts))
+              Informatii['contur'].append('Closed')
+           else: 
+              Informatii['aria'].append(cv.contourArea(pts))
+              Informatii['contur'].append('Open')
+          #  cv.polylines(img2d[sl,:,:,:],[pts],data['plaques'][p]["contours"][s]["closed"],(0,255,255))
+          #  cv.imshow(f"Slice {sl}", img2d[sl,:,:,2::-1])  
+          #  cv.waitKey(0)
+ 
            
            
       
 
-# print(Informatii)
+
 # x=['268','269','271','538','539']
 # height=[0,0,0,0,0]
 # print (Informatii['img_size'][3])
@@ -106,7 +115,7 @@ for j,i in zip(jsons,images):
 #    elif Informatii['img_size'][info][0]==539:
 #       height[4]=height[4]+1
 
-# print (x,height)
+# # print (x,height)
 # plt.bar(x,height)
 # plt.savefig(r"D:\ai intro\OCT\OCT_file\Barplot") 
 print(Informatii)
@@ -114,7 +123,7 @@ df= pd.DataFrame(Informatii)
 
 
 print(df.head())
-df.to_csv(r"D:\ai intro\OCT\OCT_file\Stats.csv", index=False)
+df.to_csv(r"D:\ai intro\OCT\OCT_file\test.csv", index=False)
 
 # with open(r"D:\ai intro\OCT\OCT_FIle\Statusuri.csv", mode='w') as oct_file:
 #   oct_writer = csv.writer(oct_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
