@@ -185,6 +185,7 @@ def read_dicom_without_annotations(path):
                    
             
     except:
+        
         print("Could not read dicom ")
     
     return dicom_list
@@ -197,32 +198,32 @@ def test_on_dicom():
 
     for path in caile_imaginii:
         img_name = os.path.basename(path)
-        os.mkdir(f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_{img_name}")
+        os.mkdir(f"D:\\ai intro\\OCT\\OCT_REPO\\Predictii\\PREDICTII_{img_name}")
         data_cartesian_per_dicom = read_dicom_without_annotations(path)
-        
-        for slice , image in enumerate(data_cartesian_per_dicom[0]['slices']):
-            
-                image= np.expand_dims(image, axis=0)
-                prediction = model.predict(image)
-                prediction = prediction[-1]
-                prediction = prediction.reshape((512, 512))
-                prediction= cv.resize(prediction,(1024,1024))
-                prediction[prediction>=0.5]=255
-                prediction[prediction<0.5]=0
-                #prediction = reg3simpla(prediction,prediction.shape[1])
+        if data_cartesian_per_dicom:
+            for slice , image in enumerate(data_cartesian_per_dicom[0]['slices']):
+                
+                    image= np.expand_dims(image, axis=0)
+                    prediction = model.predict(image)
+                    prediction = prediction[-1]
+                    prediction = prediction.reshape((512, 512))
+                    prediction= cv.resize(prediction,(1024,1024))
+                    prediction[prediction>=0.5]=255
+                    prediction[prediction<0.5]=0
+                    #prediction = reg3simpla(prediction,prediction.shape[1])
+                        
+                    # plt.subplot(1,2,1)
+                    # cv.imshow(image[0,:,:,0])
                     
-                # plt.subplot(1,2,1)
-                # cv.imshow(image[0,:,:,0])
-                
-                
-                ##cv.imwrite(f"D:\\ai intro\\OCT\\OCT_REPO\\models\\PREDICTII_IMG_____{csv_adnotari['image_index'][index]}"+"\\"+"Suprapunere"+str(slice)+".png")
-                
-                
-                #plt.imshow(prediction,cmap='gray')
-                #plt.savefig(f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_IMG{index+1}"+"\\"+"Predictie"+str(slice)+".png")
-                output=f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_{img_name}"
-                cv.imwrite(os.path.join(output, 'PREDICTIE'+'_'+str(slice)+'.png'),prediction)
-                #plt.show() 
+                    
+                    ##cv.imwrite(f"D:\\ai intro\\OCT\\OCT_REPO\\models\\PREDICTII_IMG_____{csv_adnotari['image_index'][index]}"+"\\"+"Suprapunere"+str(slice)+".png")
+                    
+                    
+                    #plt.imshow(prediction,cmap='gray')
+                    #plt.savefig(f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_IMG{index+1}"+"\\"+"Predictie"+str(slice)+".png")
+                    output=f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_{img_name}"
+                    cv.imwrite(os.path.join(output, 'PREDICTIE'+'_'+str(slice)+'.png'),prediction)
+                    #plt.show() 
 
 
     # for i in range( len(data_cartesian_per_dicom)):
