@@ -221,7 +221,7 @@ def test_on_dicom():
                     
                     #plt.imshow(prediction,cmap='gray')
                     #plt.savefig(f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_IMG{index+1}"+"\\"+"Predictie"+str(slice)+".png")
-                    output=f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_{img_name}"
+                    output=f"D:\\ai intro\\OCT\\OCT_REPO\\Predictii\\PREDICTII_{img_name}"
                     cv.imwrite(os.path.join(output, 'PREDICTIE'+'_'+str(slice)+'.png'),prediction)
                     #plt.show() 
 
