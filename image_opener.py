@@ -30,22 +30,24 @@ def reg3simpla(x,y):
   
  
 
-Informatii={'image_path':[], 'image_index':[] ,'annotation_path':[],'label':[],'slice_idx':[],'n_total_slices':[],'img_size':[],'aria':[],'contur':[]}
+data_info={'image_path':[],'annotation_path':[],'label':[],'slice_idx':[],'n_total_slices':[],'img_size':[],'aria':[],'contur':[]}
 jsons = glob.glob(r"D:\ai intro\OCT\Adnotari\*")
-images=glob.glob(r"E:\AchizitiiOctombrieUMF2021OCT_2\*")
+images=r"E:\AchizitiiOctombrieUMF2021OCT_2"
 idx=0 
 print (jsons, images)
-for j,i in zip(jsons,images):
+for j in jsons:
+  img_name = os.path.basename(j).split(".")[0]
+  img_path = os.path.join(images,img_name) 
+
   with open(j) as f:
     data = json.load(f)
     print(data.keys())
   
-  print("i:",i)
-  idx=idx+1
-  print ("idx:",idx)
+  
+  
   for k in data.keys():
    if k=='plaques':
-      ds=dcmread(i)
+      ds=dcmread(img_path)
       # img2d=ds.pixel_array
       img2d_shape = ds.pixel_array.shape
       print(len(data['plaques']))
@@ -59,10 +61,9 @@ for j,i in zip(jsons,images):
          nr=nr+n_slices
          print("# slices", n_slices)
          for s in data['plaques'][p]["contours"]:
-           Informatii['image_path'].append(os.path.normpath(i))
-           Informatii['image_index'].append(idx)
-           Informatii['annotation_path'].append(os.path.normpath(j))
-           Informatii['img_size'].append(img2d_shape)
+           data_info['image_path'].append(img_path)
+           data_info['annotation_path'].append(os.path.normpath(j))
+           data_info['img_size'].append(img2d_shape)
            print("slice", s)
            points = data['plaques'][p]["contours"][s]["control_pts"]
            print("points", points)
@@ -76,19 +77,19 @@ for j,i in zip(jsons,images):
            #print (puncte)
            sl = int(s)
            if nr != 0 :  
-             Informatii['label'].append("Calcium Nodule")
+             data_info['label'].append("Calcium Nodule")
            else:  
-             Informatii['label'].append("NONE")
-           Informatii['n_total_slices'].append(nr)
-           Informatii['slice_idx'].append(s) 
+             data_info['label'].append("NONE")
+           data_info['n_total_slices'].append(nr)
+           data_info['slice_idx'].append(s) 
            
       
            if data['plaques'][p]["contours"][s]["closed"]==True:
-              Informatii['aria'].append(cv.contourArea(pts))
-              Informatii['contur'].append('Closed')
+              data_info['aria'].append(cv.contourArea(pts))
+              data_info['contur'].append('Closed')
            else: 
-              Informatii['aria'].append(cv.contourArea(pts))
-              Informatii['contur'].append('Open')
+              data_info['aria'].append(cv.contourArea(pts))
+              data_info['contur'].append('Open')
           #  cv.polylines(img2d[sl,:,:,:],[pts],data['plaques'][p]["contours"][s]["closed"],(0,255,255))
           #  cv.imshow(f"Slice {sl}", img2d[sl,:,:,2::-1])  
           #  cv.waitKey(0)
@@ -118,8 +119,8 @@ for j,i in zip(jsons,images):
 # # print (x,height)
 # plt.bar(x,height)
 # plt.savefig(r"D:\ai intro\OCT\OCT_file\Barplot") 
-print(Informatii)
-df= pd.DataFrame(Informatii)
+print(data_info)
+df= pd.DataFrame(data_info)
 
 
 print(df.head())
