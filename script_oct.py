@@ -187,19 +187,18 @@ def read_dicom_without_annotations(path):
     except:
         print("Could not read dicom ")
     
-    print (len(dicom_list),"aa", len(dicom_list[0]),'bb',len(dicom_list[0]['slices'])) 
     return dicom_list
 
 def test_on_dicom():
-  model = get_model()
-  model.load_weights(r"D:\ai intro\OCT\CalcifiedPlaqueDetection\models\1556888684.747263_Cartesian_FocalTverskyUnet_Gray.h5")
-  csv_adnotari=pd.read_csv(r"D:\ai intro\OCT\OCT_REPO\test.csv")
-  caile_imaginii=csv_adnotari['image_path'].unique()
+    model = get_model()
+    model.load_weights(r"D:\ai intro\OCT\CalcifiedPlaqueDetection\models\1556888684.747263_Cartesian_FocalTverskyUnet_Gray.h5")
+    csv_adnotari=pd.read_csv(r"D:\ai intro\OCT\OCT_REPO\test.csv")
+    caile_imaginii=csv_adnotari['image_path'].unique()
 
-
-  for index in range(len(caile_imaginii)):
-        os.mkdir(f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_IMG{index+1}")
-        data_cartesian_per_dicom = read_dicom_without_annotations(caile_imaginii[index])
+    for path in caile_imaginii:
+        img_name = os.path.basename(path)
+        os.mkdir(f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_{img_name}")
+        data_cartesian_per_dicom = read_dicom_without_annotations(path)
         
         for slice , image in enumerate(data_cartesian_per_dicom[0]['slices']):
             
@@ -208,24 +207,21 @@ def test_on_dicom():
                 prediction = prediction[-1]
                 prediction = prediction.reshape((512, 512))
                 prediction= cv.resize(prediction,(1024,1024))
-                print(prediction.max(),prediction.min())
-                prediction[prediction > 0.5] = 1.0
-                prediction[prediction <= 0.5] = 0.0
-                print(prediction.max(),prediction.min())
-                
+                prediction[prediction>=0.5]=255
+                prediction[prediction<0.5]=0
                 #prediction = reg3simpla(prediction,prediction.shape[1])
-                       
+                    
                 # plt.subplot(1,2,1)
                 # cv.imshow(image[0,:,:,0])
                 
-                # cv.imshow(prediction)
-                # cv.imwrite(f"D:\\ai intro\\OCT\\OCT_REPO\\models\\PREDICTII_IMG{csv_adnotari['image_index'][index]}"+"\\"+"Suprapunere"+str(slice)+".png")
+                
+                ##cv.imwrite(f"D:\\ai intro\\OCT\\OCT_REPO\\models\\PREDICTII_IMG_____{csv_adnotari['image_index'][index]}"+"\\"+"Suprapunere"+str(slice)+".png")
                 
                 
-                plt.imshow(prediction,cmap='gray')
-                plt.savefig(f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_IMG{index+1}"+"\\"+"Predictie"+str(slice)+".png")
-                #path=f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_IMG{index+1}"
-                #cv.imwrite(os.path.join(path, 'PREDICTIE'+'_'+str(slice)+'.png'),prediction)
+                #plt.imshow(prediction,cmap='gray')
+                #plt.savefig(f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_IMG{index+1}"+"\\"+"Predictie"+str(slice)+".png")
+                output=f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_{img_name}"
+                cv.imwrite(os.path.join(output, 'PREDICTIE'+'_'+str(slice)+'.png'),prediction)
                 #plt.show() 
 
 
