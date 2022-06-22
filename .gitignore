@@ -16,3 +16,5 @@ Statistica.csv
 preprocessing.py
 network.py
 losses.py
+*.h5
+*.zip
