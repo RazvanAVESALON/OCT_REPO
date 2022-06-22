@@ -99,37 +99,39 @@ for j in jsons:
       
 
 
-# x=['268','269','271','538','539']
-# height=[0,0,0,0,0]
-# print (Informatii['img_size'][3])
-# for info in range(len(Informatii['img_size'])):
-#   if Informatii['n_total_slices'][info] != 0:
-#    if Informatii['img_size'][info][0]==268:
-#       height[0]=height[0]+1
-#       print (height)
-#    elif Informatii['img_size'][info][0]==269:
-#       height[1]=height[1]+1
-#    elif Informatii['img_size'][info][0]==271:
-#       height[2]=height[2]+1
-#    elif Informatii['img_size'][info][0]==538:
-#       height[3]=height[3]+1
-#    elif Informatii['img_size'][info][0]==539:
-#       height[4]=height[4]+1
+x=['268','269','271','538','539']
+height=[0,0,0,0,0]
+print (data_info['img_size'][3])
+for info in range(len(data_info['img_size'])):
+  if data_info['n_total_slices'][info] != 0:
+   if data_info['img_size'][info][0]==268:
+      height[0]=height[0]+1
+      print (height)
+   elif data_info['img_size'][info][0]==269:
+      height[1]=height[1]+1
+   elif data_info['img_size'][info][0]==271:
+      height[2]=height[2]+1
+   elif data_info['img_size'][info][0]==538:
+      height[3]=height[3]+1
+   elif data_info['img_size'][info][0]==539:
+      height[4]=height[4]+1
 
-# # print (x,height)
-# plt.bar(x,height)
-# plt.savefig(r"D:\ai intro\OCT\OCT_file\Barplot") 
-print(data_info)
-df= pd.DataFrame(data_info)
+# print (x,height)
+plt.bar(x,height)
+plt.xlabel("Number of slice from a image")
+plt.ylabel("Counter of images ")
+plt.savefig(r"D:\ai intro\OCT\OCT_REPOs\Barplot-Number_of_slices") 
+# print(data_info)
+# df= pd.DataFrame(data_info)
 
 
-print(df.head())
-df.to_csv(r"D:\ai intro\OCT\OCT_file\test.csv", index=False)
+# print(df.head())
+# df.to_csv(r"D:\ai intro\OCT\OCT_file\test.csv", index=False)
 
 # with open(r"D:\ai intro\OCT\OCT_FIle\Statusuri.csv", mode='w') as oct_file:
 #   oct_writer = csv.writer(oct_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-#   for info in range(len(Informatii['image_name'])):
-#     oct_writer.writerow([Informatii['image_name'][info],Informatii['label'][info],Informatii['n_total_slices'][info],Informatii['img_size'][info]])
+#   for info in range(len(data_info['image_name'])):
+#     oct_writer.writerow([data_info['image_name'][info],data_info['label'][info],data_info['n_total_slices'][info],data_info['img_size'][info]])
  
         
 
