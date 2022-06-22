@@ -1,3 +1,18 @@
 
 *.png
 *.pyc
+CalcifiedPlaqueDetection.py
+CalcifiedPlaqueDetection.pyproj
+CalcifiedPlaqueDetection.sln
+CalcifiedPlaqueDetection.yml
+email_.py
+data.py
+focal_tversky_unet.py
+GlobalSettings.py
+Statistica.csv
+Statusuri.csv
+Statistica.csv
+Statistica.csv
+preprocessing.py
+network.py
+losses.py
