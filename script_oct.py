@@ -1,7 +1,12 @@
+from __future__ import annotations
 from ast import Slice
+import csv
 from email.mime import image
+from hashlib import new
 import os
+from pickle import TRUE
 from re import I
+import re
 from sqlite3 import Date
 import cv2 as cv
 import data
@@ -84,10 +89,21 @@ def get_model():
 
 
 def dice_coef(y_true, y_pred):
-    y_true_f = tf.reshape(tf.dtypes.cast(y_true, tf.float32), [-1])
-    y_pred_f = tf.reshape(tf.dtypes.cast(y_pred, tf.float32), [-1])
-    intersection = tf.reduce_sum(y_true_f * y_pred_f)
-    return (2. * intersection + 1.) / (tf.reduce_sum(y_true_f) + tf.reduce_sum(y_pred_f) + 1.)
+
+    y_true_f = y_true.astype('float32')
+    print (y_pred)
+    y_pred_f = y_pred.astype('float32')
+    y_true_f=y_true_f.flatten()
+    y_pred_f=y_pred_f.flatten()
+    union = np.sum(y_true_f) + np.sum(y_pred_f)
+    if union==0: return 1
+    intersection = np.sum(y_true_f * y_pred_f)
+    return 2. * intersection / union
+
+    # y_true_f = tf.reshape(tf.dtypes.cast(y_true, tf.float32), [-1])
+    # y_pred_f = tf.reshape(tf.dtypes.cast(y_pred, tf.float32), [-1])
+    # intersection = tf.reduce_sum(y_true_f * y_pred_f)
+    # return (2. * intersection + 1.) / (tf.reduce_sum(y_true_f) + tf.reduce_sum(y_pred_f) + 1.)
 
 
 def reg3simpla(x,y):
@@ -115,13 +131,16 @@ def transfom_into_binary(data,j,path_to_save):
                             img=np.zeros((1024,1024,3), np.uint8)
                             filled = cv.fillPoly(img, pts = [pts], color =(255,255,255))
                             print(filled)
-                            cv.imwrite(os.path.join(path_to_save, 'Adnotare_binara'+'_'+str(p)+'_'+str(s)+'.png'),filled)
+                            cv.imwrite(os.path.join(path_to_save, 'Adnotare_binara'+'_'+str(s)+'.png'),filled)
+                            
+ 
+ 
+
                                 
 def overlap(gt,pred):
  print(gt.shape, gt.dtype)
  print(gt.min(), gt.max())
- gt = gt[:, :, 0]
- pred = pred[:, :, 0]
+
  
  tp = gt & pred
  fp = ~gt & pred
@@ -136,9 +155,9 @@ def overlap(gt,pred):
  img [:,:,0]= fn
  
  print(img.min(), img.max())
- plt.imshow(img)
- plt.show()
- 
+ #plt.imshow(img)
+ #plt.show()
+ return img 
 #  cv.destroyAllWindows() 
 
 def read_dicom_without_annotations(path):
@@ -226,6 +245,9 @@ def test_on_dicom():
                     #plt.show() 
 
 
+
+
+
     # for i in range( len(data_cartesian_per_dicom)):
     #     for count, image in enumerate(data_cartesian_per_dicom[i]['slices']):
     #         for s in range(data_cartesian_per_dicom[i]['slices']):
@@ -246,28 +268,82 @@ def test_on_dicom():
     #             plt.savefig(f"D:\\ai intro\OCT\CalcifiedPlaqueDetection\models\PREDICTII{i}"+"\\"+"Predictie"+str(count)+".png")
     #             #plt.show()
 
+
+def adaugare_dice(predictii,adnotari_binare,csv_adnotari):
+    
+    
+    dice=[]
+    for index in range(len(csv_adnotari)):
+        annotations_name=os.path.basename(csv_adnotari['annotation_path'][index])
+        image_name=os.path.basename(csv_adnotari['image_path'][index])
+        slice=csv_adnotari['slice_idx'][index]
+    
+        annotations_images=os.path.join(adnotari_binare,f"ADNOTARI_BINARE.{annotations_name}")
+        prediction_images=os.path.join(predictii,f"PREDICTII_{image_name}")
+        
+        annotations_path=os.path.join(annotations_images,f"Adnotare_binara_{slice}.png")
+        prediction_path=os.path.join(prediction_images,f"PREDICTIE_{slice}.png")
+        
+        pred=cv.imread(prediction_path,cv.IMREAD_GRAYSCALE)
+        gt=cv.imread(annotations_path,cv.IMREAD_GRAYSCALE)
+        print(annotations_path,prediction_path)
+        print (os.path.exists(prediction_path),os.path.exists(annotations_path))
+        if os.path.exists(prediction_path)==True and os.path.exists(annotations_path)==True:
+            if csv_adnotari['contur'][index]=='Closed':
+                gt_bin = (gt / 255).astype(np.uint8)
+                pred_bin = (pred / 255).astype(np.uint8)
+
+                dice.append(dice_coef(gt_bin, pred_bin))
+                output=r"D:\ai intro\OCT\OCT_REPO\Overlap"
+                cv.imwrite(os.path.join(output, 'OVERLAP'+'_'+str(image_name)+'_'+str(slice)+'.png'),overlap(gt,pred))
+            else:
+                dice.append(-1)
+        else:
+            dice.append(-1)            
+        
+        
+        
+       # slice_idx=os.path.basename(dir_ann).split(".")[1]
+
+
+        #for ann_path in annotations:
+        #    print (ann_path)
+         #   image_slice=os.path.basename(ann_path).split("_")[3].split(".")[0]
+         #   image_ext = os.path.basename(ann_path).split("_")[3].split(".")[1]
+       
+    csv_adnotari['dice']= dice
+    print(dice)
+    
+    df= pd.DataFrame(csv_adnotari)
+
+
+    print(df.head())
+    df.to_csv(r"D:\ai intro\OCT\OCT_file\DICE_ADDED.csv", index=False)
+    
+    
+            
+            
+        
+        
     
                                     
                         
                             
                               
 if __name__=='__main__':   
-#   jsons = glob.glob(r"D:\ai intro\OCT\Adnotari\*")
-#   for j in jsons:
-#       print (j)
-#       with open(j) as f:
-#            date = json.load(f)
-#       print (date.keys())
-#       os.mkdir(f"D:\\ai intro\\OCT\\OCT_REPO\\Imagini\\ADNOTARI_BINARE_{os.path.basename(j)}")
-#       path_to_save=f"D:\\ai intro\\OCT\\OCT_REPO\\Imagini\\ADNOTARI_BINARE_{os.path.basename(j)}"
-#       transfom_into_binary(date,j,path_to_save)    
+    jsons = glob.glob(r"D:\ai intro\OCT\Adnotari\*")
+    csv_adnotari=pd.read_csv(r"D:\ai intro\OCT\OCT_REPO\test.csv")
+    predictii=(r"D:\ai intro\OCT\OCT_REPO\Predictii")
+    adnotari_binare=(r"D:\ai intro\OCT\OCT_REPO\Imagini")
+    # for j in jsons:
+    #         print (j)
+    #         with open(j) as f:
+    #             date = json.load(f)
+    #         print (date.keys())
+    #         os.mkdir(f"D:\\ai intro\\OCT\\OCT_REPO\\Imagini\\ADNOTARI_BINARE.{os.path.basename(j)}")
+    #         path_to_save=f"D:\\ai intro\\OCT\\OCT_REPO\\Imagini\\ADNOTARI_BINARE.{os.path.basename(j)}"
+    #         transfom_into_binary(date,j,path_to_save)
+    
+    adaugare_dice(predictii,adnotari_binare,csv_adnotari)
         
-#   gt=cv.imread(r"D:\ai intro\OCT\OCT_REPO\Imagini\Adnotare_binara_0_64.png")
-#   pred=cv.imread(r"D:\ai intro\OCT\OCT_REPO\Imagini\Adnotare_binara_0_66.png")
-#   overlap(gt,pred)
- test_on_dicom() 
-   
-   
-
-                            
-                            
+                                        
