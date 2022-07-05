@@ -18,3 +18,4 @@ network.py
 losses.py
 *.h5
 *.zip
+*.csv
