@@ -33,6 +33,11 @@ import keras
 import SimpleITK as sitk
 import pydicom
 from data import multiprocess
+from sklearn.metrics  import  f1_score , confusion_matrix , precision_score, recall_score  , jaccard_score
+from segmentation_models.metrics import iou_score
+from scipy.stats import pearsonr
+from CalcifiedPlaqueDetection import test , test_dice
+
 os.environ["CUDA_VISIBLE_DEVICES"] = GS.GPU
 
 def get_model():
@@ -179,9 +184,18 @@ def read_dicom_without_annotations(path):
                 
         images_temp = []
         for count, image in enumerate(images):
+            
+            cv.imwrite(os.path.join(r'D:\ai intro\OCT\OCT_REPO\Before preprocessing', 'IMG_1'+f'_preprocesare{count}'+'.png'),image)
             image = preprocessing.remove_lumen(image)
+            
+            cv.imwrite(os.path.join(r'D:\ai intro\OCT\OCT_REPO\Remove_lumen', 'IMG_1'+f'_removelumen{count}'+'.png'),image)
             image = preprocessing.cut_text_from_oct_image(image)
+
+            cv.imwrite(os.path.join(r'D:\ai intro\OCT\OCT_REPO\Cut_text', 'IMG_1'+f'_cut_text{count}'+'.png'),image)  
+
             image = preprocessing.remove_speckle(image)
+            cv.imwrite(os.path.join(r'D:\ai intro\OCT\OCT_REPO\remove_spekle', 'IMG_1'+f'_removespeckle{count}'+'.png'),image)
+
             image = multiprocess(image, [], None, None, [], [], None)
             #    #plt.imshow(image)
             #    #plt.show()
@@ -212,12 +226,15 @@ def read_dicom_without_annotations(path):
 def test_on_dicom():
     model = get_model()
     model.load_weights(r"D:\ai intro\OCT\CalcifiedPlaqueDetection\models\1556888684.747263_Cartesian_FocalTverskyUnet_Gray.h5")
-    csv_adnotari=pd.read_csv(r"D:\ai intro\OCT\OCT_REPO\test.csv")
+    csv_adnotari=pd.read_csv(r"D:\ai intro\OCT\OCT_REPO\DICE_ADDED.csv")
     caile_imaginii=csv_adnotari['image_path'].unique()
-
+    print(caile_imaginii)
+    caile_imaginii=caile_imaginii[1]
+    
     for path in caile_imaginii:
         img_name = os.path.basename(path)
-        os.mkdir(f"D:\\ai intro\\OCT\\OCT_REPO\\Predictii\\PREDICTII_{img_name}")
+        metrics={'dice':[],'jaccard':[],'iou':[]}
+        #os.mkdir(f"D:\\ai intro\\OCT\\OCT_REPO\\Predictii_v2\\PREDICTII_V2_{img_name}")
         data_cartesian_per_dicom = read_dicom_without_annotations(path)
         if data_cartesian_per_dicom:
             for slice , image in enumerate(data_cartesian_per_dicom[0]['slices']):
@@ -226,9 +243,17 @@ def test_on_dicom():
                     prediction = model.predict(image)
                     prediction = prediction[-1]
                     prediction = prediction.reshape((512, 512))
+                    dice_idx,jaccard,iou=test_dice(prediction,image)
+                    
+                    metrics['dice'].append(dice_idx)
+                    metrics['jaccard'].append(jaccard)
+                    metrics['iou'].append(iou)
+                
                     prediction= cv.resize(prediction,(1024,1024))
-                    prediction[prediction>=0.5]=255
-                    prediction[prediction<0.5]=0
+                    #tp,fp,fn=poz_negs_calculator(image,prediction)
+                    
+                    prediction[prediction>=0.1]=255
+                    prediction[prediction<0.1]=0
                     #prediction = reg3simpla(prediction,prediction.shape[1])
                         
                     # plt.subplot(1,2,1)
@@ -240,9 +265,13 @@ def test_on_dicom():
                     
                     #plt.imshow(prediction,cmap='gray')
                     #plt.savefig(f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_IMG{index+1}"+"\\"+"Predictie"+str(slice)+".png")
-                    output=f"D:\\ai intro\\OCT\\OCT_REPO\\Predictii\\PREDICTII_{img_name}"
-                    cv.imwrite(os.path.join(output, 'PREDICTIE'+'_'+str(slice)+'.png'),prediction)
-                    #plt.show() 
+                    #output=f"D:\\ai intro\\OCT\\OCT_REPO\\Predictii_v2\\PREDICTII_V2_{img_name}"
+                   # cv.imwrite(os.path.join(output, 'PREDICTIE'+'_'+str(slice)+'.png'),prediction)
+                    #plt.show()
+        # df= pd.DataFrame(metrics)
+        # print(df.head())
+        # df.to_csv(os.path.join(f"D:\\ai intro\\OCT\\OCT_REPO\\Predictii_v2\\PREDICTII_V2_{img_name}","METRICS"+'_'+str(img_name)+'.csv'), index=False)
+                     
 
 
 
@@ -268,6 +297,23 @@ def test_on_dicom():
     #             plt.savefig(f"D:\\ai intro\OCT\CalcifiedPlaqueDetection\models\PREDICTII{i}"+"\\"+"Predictie"+str(count)+".png")
     #             #plt.show()
 
+def metrics_calculation(gt,pred):
+    gt=gt.flatten()
+    pred=pred.flatten()
+    tp,fp,fn,tn=confusion_matrix(gt,pred).ravel()
+    #mean_diff = np.mean(np.abs(gt - pred))
+    senzitivity=recall_score(gt,pred)
+    precision=precision_score(gt,pred)
+    f1=f1_score(gt,pred)
+    fn_rate=fn/(fn + tp)
+    pearson=pearsonr(gt,pred)
+    jaccard = jaccard_score(gt,pred)
+    #iou= iou_score(gt,pred)
+    print ("Senzitivity:",senzitivity,"Precision:",precision,"F1:",f1,"FN_rate:",fn_rate,"Pearson:",pearson[0],"Jaccard:",jaccard)
+    
+        
+    #print("FN rate: ", fn/(fn + tp))    
+
 
 def adaugare_dice(predictii,adnotari_binare,csv_adnotari):
     
@@ -279,7 +325,7 @@ def adaugare_dice(predictii,adnotari_binare,csv_adnotari):
         slice=csv_adnotari['slice_idx'][index]
     
         annotations_images=os.path.join(adnotari_binare,f"ADNOTARI_BINARE.{annotations_name}")
-        prediction_images=os.path.join(predictii,f"PREDICTII_{image_name}")
+        prediction_images=os.path.join(predictii,f"PREDICTII_V2_{image_name}")
         
         annotations_path=os.path.join(annotations_images,f"Adnotare_binara_{slice}.png")
         prediction_path=os.path.join(prediction_images,f"PREDICTIE_{slice}.png")
@@ -294,8 +340,9 @@ def adaugare_dice(predictii,adnotari_binare,csv_adnotari):
                 pred_bin = (pred / 255).astype(np.uint8)
 
                 dice.append(dice_coef(gt_bin, pred_bin))
-                output=r"D:\ai intro\OCT\OCT_REPO\Overlap"
-                cv.imwrite(os.path.join(output, 'OVERLAP'+'_'+str(image_name)+'_'+str(slice)+'.png'),overlap(gt,pred))
+                #output=r"D:\ai intro\OCT\OCT_REPO\Overlap"
+                #metrics_calculation(gt_bin,pred_bin)
+                #cv.imwrite(os.path.join(output, 'OVERLAP'+'_'+str(image_name)+'_'+str(slice)+'.png'),overlap(gt,pred))
             else:
                 dice.append(-1)
         else:
@@ -311,39 +358,167 @@ def adaugare_dice(predictii,adnotari_binare,csv_adnotari):
          #   image_slice=os.path.basename(ann_path).split("_")[3].split(".")[0]
          #   image_ext = os.path.basename(ann_path).split("_")[3].split(".")[1]
        
-    csv_adnotari['dice']= dice
+    csv_adnotari['dice_calculat_de_mine']= dice
     print(dice)
     
     df= pd.DataFrame(csv_adnotari)
 
 
     print(df.head())
-    df.to_csv(r"D:\ai intro\OCT\OCT_file\DICE_ADDED.csv", index=False)
+    df.to_csv(r"D:\ai intro\OCT\OCT_file\DICE_ADDED_v2.csv", index=False)
+    
+def poz_negs_calculator(gt,prediction):
+    
+    contours_prediction = cv.findContours(prediction.astype(np.uint8), 0, method=1)
+    contours_gt = cv.findContours(gt[count, 0,:, :, 0].astype(np.uint8), 0, method=1)
+
+    cnt_predictions = list(filter(lambda x : len(x) > 5, contours_prediction[1]))
+    contours_prediction = (contours_prediction[0], cnt_predictions, contours_prediction[2])
+    cnt_gts = list(filter(lambda x : len(x) > 5, contours_gt[1]))
+    contours_gt = (contours_gt[0], cnt_gts, contours_gt[2])
+
+    mean_coord_pred = []
+    ys_pred = []
+    mean_coord_gt = []
+    ys_gt = []
+    prediction_contours = contours_prediction[1]
+    gt_contours = contours_gt[1]
+
+    gts = []
+    indexes = []
+    for index, cnt in enumerate(gt_contours):
+        area = cv.contourArea(cnt)
+        box = cv.minAreaRect(cnt)
+        box = cv.cv.BoxPoints(box) if imutils.is_cv() else cv.boxPoints(box)
+        box = np.array(box, dtype="int")
+
+        box = perspective.order_points(box)
+
+        cX = np.average(box[:, 0])
+        cY = np.average(box[:, 1])
+
+        (tl, tr, br, bl) = box
+        (tlblX, tlblY) = ((tl[0] + bl[0]) // 2, (tl[1] + bl[1]) // 2)
+        (trbrX, trbrY) = ((tr[0] + br[0]) // 2, (tr[1] + br[1]) // 2)
+
+        D = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
+        if area > 120:
+            gts.append((box, (cX, cY), D, area))
+        else:
+            indexes.append(index)
+
+    for count, index in enumerate(indexes):
+        gt_contours.pop(index - count)
+
+    preds = []
+    indexes = []
+    for index, cnt in enumerate(prediction_contours):
+        area = cv.contourArea(cnt)
+        box = cv.minAreaRect(cnt)
+        box = cv.cv.BoxPoints(box) if imutils.is_cv2() else cv.boxPoints(box)
+        box = np.array(box, dtype="int")
+
+        box = perspective.order_points(box)
+
+        cX = np.average(box[:, 0])
+        cY = np.average(box[:, 1])
+
+        (tl, tr, br, bl) = box
+        (tlblX, tlblY) = ((tl[0] + bl[0]) // 2, (tl[1] + bl[1]) // 2)
+        (trbrX, trbrY) = ((tr[0] + br[0]) // 2, (tr[1] + br[1]) // 2)
+
+        D = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
+        if area > 120:
+            preds.append((box, (cX, cY), D, area))
+        else:
+            indexes.append(index)
+
+    for count, index in enumerate(indexes):
+        prediction_contours.pop(index - count)
+
+    tp_coords_gt = []
+    tp_coords_pred = []
+    indexes = []
+    for gt in gts:
+        (box_gt, (cX_gt, cY_gt), D_gt, area_gt) = gt
+        for index, pred in enumerate(preds):
+            #if gt not in np.array(tp_coords_gt):
+            (box_pred, (cX_pred, cY_pred), D_pred, area_pred) = pred
+            diff_box_coord = np.abs(box_pred - box_gt)
+
+            if pred[-1] > gt[-1]:
+                min_x = box_pred[:,0].min()
+                max_x = box_pred[:,0].max()
+                min_y = box_pred[:,1].min()
+                max_y = box_pred[:,1].max()
+
+                range_x = np.arange(min_x - 40, max_x + 40)
+                range_y = np.arange(min_y - 40, max_y + 40)
+
+                ok = True
+                for coord in box_gt:
+                    if coord[0] not in range_x or coord[1] not in range_y:
+                        ok = False
+
+                if ok == True:
+                    tp_coords_pred.append(pred)
+                    if gt not in np.array(tp_coords_gt):
+                        tp_coords_gt.append(gt)
+                    indexes.append(index)
+                    print("TP")
+                    tp += 1
+
+            elif gt[-1] > pred[-1]:
+                min_x = box_gt[:,0].min()
+                max_x = box_gt[:,0].max()
+                min_y = box_gt[:,1].min()
+                max_y = box_gt[:,1].max()
+
+                range_x = np.arange(min_x - 40, max_x + 40)
+                range_y = np.arange(min_y - 40, max_y + 40)
+
+                ok = True
+                for coord in box_pred:
+                    if coord[0] not in range_x or coord[1] not in range_y:
+                        ok = False
+
+                if ok == True:
+                    tp_coords_pred.append(pred)
+                    if gt not in np.array(tp_coords_gt):
+                        tp_coords_gt.append(gt)
+                    indexes.append(index)
+                    print("TP")
+                    tp += 1
+
+    if len(preds) - len(tp_coords_pred) > 0:
+        fp += len(preds) - len(tp_coords_pred)
+        print("FP " * (len(preds) - len(tp_coords_pred)))
+    if len(gts) - len(tp_coords_gt) > 0:
+        fn += len(gts) - len(tp_coords_gt)
+        print("FN " * (len(gts) - len(tp_coords_gt)))
+    return tp , fp ,fn 
+
+
+
     
     
-            
-            
-        
-        
-    
-                                    
-                        
-                            
-                              
+                      
 if __name__=='__main__':   
-    jsons = glob.glob(r"D:\ai intro\OCT\Adnotari\*")
-    csv_adnotari=pd.read_csv(r"D:\ai intro\OCT\OCT_REPO\test.csv")
-    predictii=(r"D:\ai intro\OCT\OCT_REPO\Predictii")
-    adnotari_binare=(r"D:\ai intro\OCT\OCT_REPO\Imagini")
-    # for j in jsons:
-    #         print (j)
-    #         with open(j) as f:
-    #             date = json.load(f)
-    #         print (date.keys())
-    #         os.mkdir(f"D:\\ai intro\\OCT\\OCT_REPO\\Imagini\\ADNOTARI_BINARE.{os.path.basename(j)}")
-    #         path_to_save=f"D:\\ai intro\\OCT\\OCT_REPO\\Imagini\\ADNOTARI_BINARE.{os.path.basename(j)}"
-    #         transfom_into_binary(date,j,path_to_save)
-    
-    adaugare_dice(predictii,adnotari_binare,csv_adnotari)
+    # jsons = glob.glob(r"D:\ai intro\OCT\Adnotari\*")
+    # csv_adnotari=pd.read_csv(r"D:\ai intro\OCT\OCT_REPO\DICE_ADDED.csv")
+    # predictii=(r"D:\ai intro\OCT\OCT_REPO\Predictii_v2")
+    # adnotari_binare=(r"D:\ai intro\OCT\OCT_REPO\Imagini")
+    # # # for j in jsons:
+    # # #         print (j)
+    # # #         with open(j) as f:
+    # # #             date = json.load(f)
+    # # #         print (date.keys())
+    # # #         os.mkdir(f"D:\\ai intro\\OCT\\OCT_REPO\\Imagini\\ADNOTARI_BINARE.{os.path.basename(j)}")
+    # # #         path_to_save=f"D:\\ai intro\\OCT\\OCT_REPO\\Imagini\\ADNOTARI_BINARE.{os.path.basename(j)}"
+    # # #         transfom_into_binary(date,j,path_to_save)
+  
+    read_dicom_without_annotations(r"E:\AchizitiiOctombrieUMF2021OCT\Patient001\IMG001")
+    # adaugare_dice(predictii,adnotari_binare,csv_adnotari)
+    #test_on_dicom()
         
                                         
