@@ -240,10 +240,11 @@ def test_on_dicom():
         data_cartesian_per_dicom = read_dicom_without_annotations(path)
         if data_cartesian_per_dicom:
             for slice , image in enumerate(data_cartesian_per_dicom[0]['slices']):
-                    image = cv.resize(image,(512,512))
+                   
                     image= np.expand_dims(image, axis=0)
                     
-                    prediction = model.predict(image)
+                    
+                    prediction = model.predict( cv.resize(image,(512,512)))
                     prediction = prediction[-1]
                     prediction = prediction.reshape((512, 512))
                     dice_idx,jaccard,iou=test_dice(prediction,image)
