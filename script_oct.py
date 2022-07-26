@@ -229,17 +229,20 @@ def test_on_dicom():
     csv_adnotari=pd.read_csv(r"D:\ai intro\OCT\OCT_REPO\DICE_ADDED.csv")
     caile_imaginii=csv_adnotari['image_path'].unique()
     print(caile_imaginii)
-    caile_imaginii=caile_imaginii[1]
+    #caile_imaginii=caile_imaginii[1]
     
     for path in caile_imaginii:
+        print (path)
         img_name = os.path.basename(path)
+        print(img_name)
         metrics={'dice':[],'jaccard':[],'iou':[]}
-        #os.mkdir(f"D:\\ai intro\\OCT\\OCT_REPO\\Predictii_v2\\PREDICTII_V2_{img_name}")
+        os.mkdir(f"D:\\ai intro\\OCT\\OCT_REPO\\Predictii_v3\\PREDICTII_V3_{img_name}")
         data_cartesian_per_dicom = read_dicom_without_annotations(path)
         if data_cartesian_per_dicom:
             for slice , image in enumerate(data_cartesian_per_dicom[0]['slices']):
-                
+                    image = cv.resize(image,(512,512))
                     image= np.expand_dims(image, axis=0)
+                    
                     prediction = model.predict(image)
                     prediction = prediction[-1]
                     prediction = prediction.reshape((512, 512))
@@ -250,27 +253,28 @@ def test_on_dicom():
                     metrics['iou'].append(iou)
                 
                     prediction= cv.resize(prediction,(1024,1024))
+                    
                     #tp,fp,fn=poz_negs_calculator(image,prediction)
                     
                     prediction[prediction>=0.1]=255
                     prediction[prediction<0.1]=0
-                    #prediction = reg3simpla(prediction,prediction.shape[1])
+                    prediction = reg3simpla(prediction,prediction.shape[1])
                         
-                    # plt.subplot(1,2,1)
-                    # cv.imshow(image[0,:,:,0])
+                    #plt.subplot(1,2,1)
+                    #cv.imshow(image[0,:,:,0])
                     
                     
-                    ##cv.imwrite(f"D:\\ai intro\\OCT\\OCT_REPO\\models\\PREDICTII_IMG_____{csv_adnotari['image_index'][index]}"+"\\"+"Suprapunere"+str(slice)+".png")
+                    #cv.imwrite(f"D:\\ai intro\\OCT\\OCT_REPO\\models\\PREDICTII_IMG_____{csv_adnotari['image_index'][index]}"+"\\"+"Suprapunere"+str(slice)+".png")
                     
                     
                     #plt.imshow(prediction,cmap='gray')
                     #plt.savefig(f"D:\\ai intro\\OCT\\OCT_REPO\\PREDICTII_IMG{index+1}"+"\\"+"Predictie"+str(slice)+".png")
-                    #output=f"D:\\ai intro\\OCT\\OCT_REPO\\Predictii_v2\\PREDICTII_V2_{img_name}"
-                   # cv.imwrite(os.path.join(output, 'PREDICTIE'+'_'+str(slice)+'.png'),prediction)
+                    output=f"D:\\ai intro\\OCT\\OCT_REPO\\Predictii_v3\\PREDICTII_V3_{img_name}"
+                    cv.imwrite(os.path.join(output, 'PREDICTIE'+'_'+str(slice)+'.png'),prediction)
                     #plt.show()
-        # df= pd.DataFrame(metrics)
-        # print(df.head())
-        # df.to_csv(os.path.join(f"D:\\ai intro\\OCT\\OCT_REPO\\Predictii_v2\\PREDICTII_V2_{img_name}","METRICS"+'_'+str(img_name)+'.csv'), index=False)
+        df= pd.DataFrame(metrics)
+        print(df.head())
+        df.to_csv(os.path.join(f"D:\\ai intro\\OCT\\OCT_REPO\\Predictii_v3\\PREDICTII_V3_{img_name}","METRICS"+'_'+str(img_name)+'.csv'), index=False)
                      
 
 
@@ -504,10 +508,10 @@ def poz_negs_calculator(gt,prediction):
     
                       
 if __name__=='__main__':   
-    # jsons = glob.glob(r"D:\ai intro\OCT\Adnotari\*")
-    # csv_adnotari=pd.read_csv(r"D:\ai intro\OCT\OCT_REPO\DICE_ADDED.csv")
-    # predictii=(r"D:\ai intro\OCT\OCT_REPO\Predictii_v2")
-    # adnotari_binare=(r"D:\ai intro\OCT\OCT_REPO\Imagini")
+    jsons = glob.glob(r"D:\ai intro\OCT\Adnotari\*")
+    csv_adnotari=pd.read_csv(r"D:\ai intro\OCT\OCT_REPO\DICE_ADDED.csv")
+    predictii=(r"D:\ai intro\OCT\OCT_REPO\Predictii_v2")
+    adnotari_binare=(r"D:\ai intro\OCT\OCT_REPO\Imagini")
     # # # for j in jsons:
     # # #         print (j)
     # # #         with open(j) as f:
@@ -517,8 +521,8 @@ if __name__=='__main__':
     # # #         path_to_save=f"D:\\ai intro\\OCT\\OCT_REPO\\Imagini\\ADNOTARI_BINARE.{os.path.basename(j)}"
     # # #         transfom_into_binary(date,j,path_to_save)
   
-    read_dicom_without_annotations(r"E:\AchizitiiOctombrieUMF2021OCT\Patient001\IMG001")
-    # adaugare_dice(predictii,adnotari_binare,csv_adnotari)
-    #test_on_dicom()
+    #read_dicom_without_annotations(r"E:\AchizitiiOctombrieUMF2021OCT\Patient001\IMG001")
+    #adaugare_dice(predictii,adnotari_binare,csv_adnotari)
+    test_on_dicom()
         
                                         
