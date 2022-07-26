@@ -120,7 +120,8 @@ for info in range(len(data_info['img_size'])):
 plt.bar(x,height)
 plt.xlabel("Number of slice from a image")
 plt.ylabel("Counter of images ")
-plt.savefig(r"D:\ai intro\OCT\OCT_REPOs\Barplot-Number_of_slices") 
+plt.title("Count over number of slices ")
+plt.savefig(r"D:\ai intro\OCT\OCT_REPO\Barplot-Number_of_slices") 
 # print(data_info)
 # df= pd.DataFrame(data_info)
 
