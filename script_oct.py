@@ -243,8 +243,8 @@ def test_on_dicom():
                    
                     image= np.expand_dims(image, axis=0)
                     
-                    
-                    prediction = model.predict( cv.resize(image,(512,512)))
+                    image=cv.resize(image,(512,512), fx=0.5, fy=0.5)
+                    prediction = model.predict(image)
                     prediction = prediction[-1]
                     prediction = prediction.reshape((512, 512))
                     dice_idx,jaccard,iou=test_dice(prediction,image)
