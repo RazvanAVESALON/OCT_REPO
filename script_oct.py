@@ -226,7 +226,7 @@ def read_dicom_without_annotations(path):
 def test_on_dicom():
     model = get_model()
     model.load_weights(r"D:\ai intro\OCT\CalcifiedPlaqueDetection\models\1556888684.747263_Cartesian_FocalTverskyUnet_Gray.h5")
-    csv_adnotari=pd.read_csv(r"D:\ai intro\OCT\OCT_REPO\DICE_ADDED.csv")
+    csv_adnotari=pd.read_csv(r"D:\ai intro\OCT\OCT_REPO\DICE_ADDED_v2.csv")
     caile_imaginii=csv_adnotari['image_path'].unique()
     print(caile_imaginii)
     #caile_imaginii=caile_imaginii[1]
@@ -345,9 +345,9 @@ def adaugare_dice(predictii,adnotari_binare,csv_adnotari):
                 pred_bin = (pred / 255).astype(np.uint8)
 
                 dice.append(dice_coef(gt_bin, pred_bin))
-                #output=r"D:\ai intro\OCT\OCT_REPO\Overlap"
+                output=r"D:\ai intro\OCT\OCT_REPO\Overlap"
                 #metrics_calculation(gt_bin,pred_bin)
-                #cv.imwrite(os.path.join(output, 'OVERLAP'+'_'+str(image_name)+'_'+str(slice)+'.png'),overlap(gt,pred))
+                cv.imwrite(os.path.join(output, 'OVERLAP'+'_'+str(image_name)+'_'+str(slice)+'.png'),overlap(gt,pred))
             else:
                 dice.append(-1)
         else:
@@ -355,13 +355,13 @@ def adaugare_dice(predictii,adnotari_binare,csv_adnotari):
         
         
         
-       # slice_idx=os.path.basename(dir_ann).split(".")[1]
+        # slice_idx=os.path.basename(dir_ann).split(".")[1]
 
 
-        #for ann_path in annotations:
+        # for ann_path in annotations:
         #    print (ann_path)
-         #   image_slice=os.path.basename(ann_path).split("_")[3].split(".")[0]
-         #   image_ext = os.path.basename(ann_path).split("_")[3].split(".")[1]
+        #    image_slice=os.path.basename(ann_path).split("_")[3].split(".")[0]
+        #    image_ext = os.path.basename(ann_path).split("_")[3].split(".")[1]
        
     csv_adnotari['dice_calculat_de_mine']= dice
     print(dice)
@@ -511,8 +511,9 @@ def poz_negs_calculator(gt,prediction):
 if __name__=='__main__':   
     jsons = glob.glob(r"D:\ai intro\OCT\Adnotari\*")
     csv_adnotari=pd.read_csv(r"D:\ai intro\OCT\OCT_REPO\DICE_ADDED.csv")
-    predictii=(r"D:\ai intro\OCT\OCT_REPO\Predictii_v2")
+    predictii=(r"D:\ai intro\OCT\OCT_REPO\Predictii")
     adnotari_binare=(r"D:\ai intro\OCT\OCT_REPO\Imagini")
+   
     # # # for j in jsons:
     # # #         print (j)
     # # #         with open(j) as f:
@@ -521,9 +522,9 @@ if __name__=='__main__':
     # # #         os.mkdir(f"D:\\ai intro\\OCT\\OCT_REPO\\Imagini\\ADNOTARI_BINARE.{os.path.basename(j)}")
     # # #         path_to_save=f"D:\\ai intro\\OCT\\OCT_REPO\\Imagini\\ADNOTARI_BINARE.{os.path.basename(j)}"
     # # #         transfom_into_binary(date,j,path_to_save)
-  
+      
     #read_dicom_without_annotations(r"E:\AchizitiiOctombrieUMF2021OCT\Patient001\IMG001")
-    #adaugare_dice(predictii,adnotari_binare,csv_adnotari)
-    test_on_dicom()
+    adaugare_dice(predictii,adnotari_binare,csv_adnotari)
+    #test_on_dicom()
         
                                         
