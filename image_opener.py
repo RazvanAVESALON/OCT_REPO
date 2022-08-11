@@ -76,6 +76,8 @@ for j in jsons:
            #print(puncte.shape)
            #print (puncte)
            sl = int(s)
+           print (s)
+           print (sl) 
            if nr != 0 :  
              data_info['label'].append("Calcium Nodule")
            else:  
@@ -99,35 +101,35 @@ for j in jsons:
       
 
 
-x=['268','269','271','538','539']
-height=[0,0,0,0,0]
-print (data_info['img_size'][3])
-for info in range(len(data_info['img_size'])):
-  if data_info['n_total_slices'][info] != 0:
-   if data_info['img_size'][info][0]==268:
-      height[0]=height[0]+1
-      print (height)
-   elif data_info['img_size'][info][0]==269:
-      height[1]=height[1]+1
-   elif data_info['img_size'][info][0]==271:
-      height[2]=height[2]+1
-   elif data_info['img_size'][info][0]==538:
-      height[3]=height[3]+1
-   elif data_info['img_size'][info][0]==539:
-      height[4]=height[4]+1
+# x=['268','269','271','538','539']
+# height=[0,0,0,0,0]
+# print (data_info['img_size'][3])
+# for info in range(len(data_info['img_size'])):
+#   if data_info['n_total_slices'][info] != 0:
+#    if data_info['img_size'][info][0]==268:
+#       height[0]=height[0]+1
+#       print (height)
+#    elif data_info['img_size'][info][0]==269:
+#       height[1]=height[1]+1
+#    elif data_info['img_size'][info][0]==271:
+#       height[2]=height[2]+1
+#    elif data_info['img_size'][info][0]==538:
+#       height[3]=height[3]+1
+#    elif data_info['img_size'][info][0]==539:
+#       height[4]=height[4]+1
 
 # print (x,height)
-plt.bar(x,height)
-plt.xlabel("Number of slice from a image")
-plt.ylabel("Counter of images ")
-plt.title("Count over number of slices ")
-plt.savefig(r"D:\ai intro\OCT\OCT_REPO\Barplot-Number_of_slices") 
+# plt.bar(x,height)
+# plt.xlabel("Number of slice from a image")
+# plt.ylabel("Counter of images ")
+# plt.title("Count over number of slices ")
+# plt.savefig(r"D:\ai intro\OCT\OCT_REPO\Barplot-Number_of_slices") 
 # print(data_info)
-# df= pd.DataFrame(data_info)
+df= pd.DataFrame(data_info)
 
 
-# print(df.head())
-# df.to_csv(r"D:\ai intro\OCT\OCT_file\test.csv", index=False)
+print(df.head())
+df.to_csv(r"D:\ai intro\OCT\OCT_file\CSV_NOU.csv", index=False)
 
 # with open(r"D:\ai intro\OCT\OCT_FIle\Statusuri.csv", mode='w') as oct_file:
 #   oct_writer = csv.writer(oct_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
