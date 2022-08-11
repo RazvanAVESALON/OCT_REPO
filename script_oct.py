@@ -370,7 +370,7 @@ def adaugare_dice(predictii,adnotari_binare,csv_adnotari):
 
 
     print(df.head())
-    df.to_csv(r"D:\ai intro\OCT\OCT_file\DICE_ADDED_v2.csv", index=False)
+    df.to_csv(r"D:\ai intro\OCT\OCT_REPO\DICE_ADDED_v2.csv", index=False)
     
 def poz_negs_calculator(gt,prediction):
     
@@ -510,8 +510,8 @@ def poz_negs_calculator(gt,prediction):
                       
 if __name__=='__main__':   
     jsons = glob.glob(r"D:\ai intro\OCT\Adnotari\*")
-    csv_adnotari=pd.read_csv(r"D:\ai intro\OCT\OCT_REPO\DICE_ADDED.csv")
-    predictii=(r"D:\ai intro\OCT\OCT_REPO\Predictii")
+    csv_adnotari=pd.read_csv(r"D:\ai intro\OCT\OCT_REPO\CSV_NOU.csv")
+    predictii=(r"D:\ai intro\OCT\OCT_REPO\Predictii_v2")
     adnotari_binare=(r"D:\ai intro\OCT\OCT_REPO\Imagini")
    
     # # # for j in jsons:
