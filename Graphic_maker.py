@@ -6,7 +6,7 @@ df = pd.read_csv(r"D:\ai intro\OCT\OCT_file\Stats.csv")
 data= pd.read_csv(r'D:\ai intro\OCT\OCT_file\Statistica.csv')
      
      
-Dice=pd.read_csv(r'D:\ai intro\OCT\OCT_REPO\DICE_ADDED.csv')      
+Dice=pd.read_csv(r'D:\ai intro\OCT\OCT_REPO\DICE_ADDED_PREDICTII_v2.csv')      
 #plt.hist(data['aria'],[0.10000,20000,30000,40000,50000,60000,70000,80000,90000])  
 # plt.hist(data['aria'], 20)  
 # plt.title('ARIA')
@@ -17,8 +17,8 @@ Dice=pd.read_csv(r'D:\ai intro\OCT\OCT_REPO\DICE_ADDED.csv')
 
 
 
-print (Dice['dice'])
-plt.hist(Dice['dice'] ,[0,1])
+print (Dice['dice_calculat_de_mine'])
+plt.hist(Dice['dice_calculat_de_mine'] ,[0,0.2,0.4,0.6,0.8,1])
 
 plt.title("DICE INDEX ")
 plt.xlabel("Value")
